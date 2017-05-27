@@ -1,0 +1,63 @@
+\documentclass{jsarticle}
+\usepackage[dvipdfm, margin=4mm]{geometry}
+\usepackage{jpnum}
+\usepackage{lisp-on-tex}
+
+\newcommand\initcounter[2]{%
+    \newcounter{#1}%
+    \setcounter{#1}{#2}%
+}
+
+\initcounter{sampleI}{42}
+\initcounter{sampleII}{1000}
+\initcounter{sampleIII}{2017}
+\initcounter{sampleIV}{10000000}
+\initcounter{sampleV}{13000020}
+\initcounter{sampleVI}{2147483647}
+
+\lispinterp{
+    (\define \samples (\quote (
+        'sampleI' 'sampleII' 'sampleIII' 'sampleIV' 'sampleV' 'sampleVI'
+    )))
+    (\define \macros (\quote (
+        '\Kansuji' '\JPnum' '\JPnum*' '\Daiji' '\Daiji*' '\Znum'
+    )))
+    (\define (\foldstr \f \l)
+        (\foldstrAcc '' \f \l)
+    )
+    (\define (\foldstrAcc \s \f \l)
+        (\lispif (\= () \l) \s
+            (\foldstrAcc (\concat \s (\f (\car \l))) \f (\cdr \l))
+        )
+    )
+}
+
+
+\begin{document}
+    \lispinterp {
+        (\begin
+            (\texprint '\begin{tabular}')
+            (\texprint (\group
+                (\concat '|l' (\foldstr (\lambda (\n) '|r') \macros) '|')))
+            (\texprint '\hline')
+            % header
+            (\texprint (\concat (\foldstr
+                (\lambda (\n)
+                    (\concat '&\arabic' (\group \n))) \samples)
+                '\\\hline'))
+            (\texprint '\hline')
+            (\map
+                (\lambda (\x)
+                    (\begin
+                        (\texprint (\concat '\texttt' (\group (\concat '\string' \x))))
+                        (\texprint (\concat (\foldstr
+                            (\lambda (\n)
+                                (\concat '&' \x (\group \n))) \samples)))
+                        (\texprint '\\\hline')
+                    )
+                )
+                \macros)
+            (\texprint '\end{tabular}')
+        )
+    }
+\end{document}
